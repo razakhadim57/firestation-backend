@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const UserSchema = new mongoose.Schema({
   email: {
@@ -38,6 +39,8 @@ const UserSchema = new mongoose.Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  resetPasswordOTP: String,
+  resetPasswordOTPExpire: Date,
   lastLogin: {
     type: Date,
     default: null
@@ -77,7 +80,7 @@ UserSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Method to generate password reset token
+// Method to generate password reset token (legacy method)
 UserSchema.methods.generatePasswordResetToken = function() {
   // Generate token
   const resetToken = crypto.randomBytes(20).toString('hex');
@@ -92,6 +95,39 @@ UserSchema.methods.generatePasswordResetToken = function() {
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
   
   return resetToken;
+};
+
+// Method to generate OTP for password reset
+UserSchema.methods.generatePasswordResetOTP = function() {
+  // Generate 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  // Hash OTP before storing
+  this.resetPasswordOTP = crypto
+    .createHash('sha256')
+    .update(otp)
+    .digest('hex');
+  
+  // Set OTP expire time (15 minutes)
+  this.resetPasswordOTPExpire = Date.now() + 15 * 60 * 1000;
+  
+  return otp;
+};
+
+// Method to verify password reset OTP
+UserSchema.methods.verifyPasswordResetOTP = function(candidateOTP) {
+  // Hash the candidate OTP
+  const hashedOTP = crypto
+    .createHash('sha256')
+    .update(candidateOTP)
+    .digest('hex');
+  
+  // Check if OTP matches and is not expired
+  const isValid = 
+    this.resetPasswordOTP === hashedOTP && 
+    this.resetPasswordOTPExpire > Date.now();
+  
+  return isValid;
 };
 
 const User = mongoose.model('User', UserSchema);

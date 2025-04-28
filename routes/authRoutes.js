@@ -9,7 +9,8 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/refresh-token', authController.refreshToken);
 router.post('/forgot-password', authController.forgotPassword);
-router.put('/reset-password/:token', authController.resetPassword);
+router.post('/verify-otp', authController.verifyOTP);
+router.post('/reset-password', authController.resetPassword);
 
 // Protected routes
 router.get('/me', protect, authController.getMe);

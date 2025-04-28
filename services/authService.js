@@ -99,39 +99,42 @@ export const login = async (email, password) => {
 };
 
 /**
- * Forgot password - generate reset token and send email
+ * Forgot password - generate OTP and send email
  * @param {string} email - User email
- * @param {string} resetUrl - Base URL for reset link
  * @returns {boolean} - Success status
  */
-export const forgotPassword = async (email, resetUrl) => {
+export const forgotPassword = async (email) => {
   const user = await User.findOne({ email });
   
   if (!user) {
     throw new Error('User not found with this email');
   }
 
-  // Generate reset token
-  const resetToken = user.generatePasswordResetToken();
+  // Generate OTP
+  const otp = user.generatePasswordResetOTP();
   await user.save({ validateBeforeSave: false });
-
-  // Create reset URL
-  const resetLink = `${resetUrl}/reset-password/${resetToken}`;
-
-  // Send email
-  const message = `You requested a password reset. Please go to this link to reset your password: ${resetLink}`;
+console.log("OTP generated: ", otp);
+  // Create email message with OTP
+  const message = `
+    <h1>Password Reset</h1>
+    <p>You requested a password reset for your Feuerwehr-TV account.</p>
+    <p>Your OTP code is: <strong>${otp}</strong></p>
+    <p>This code will expire in 15 minutes.</p>
+    <p>If you did not request this reset, please ignore this email.</p>
+  `;
   
   try {
     // await sendEmail({
     //   email: user.email,
-    //   subject: 'Password Reset Token',
-    //   message
+    //   subject: 'Password Reset OTP',
+    //   message,
+    //   html: message
     // });
     
     return true;
   } catch (error) {
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordOTPExpire = undefined;
     await user.save({ validateBeforeSave: false });
     
     throw new Error('Email could not be sent');
@@ -139,32 +142,59 @@ export const forgotPassword = async (email, resetUrl) => {
 };
 
 /**
- * Reset password using token
- * @param {string} token - Reset token
- * @param {string} newPassword - New password
+ * Verify OTP for password reset
+ * @param {string} email - User email
+ * @param {string} otp - One-time password
  * @returns {boolean} - Success status
  */
-export const resetPassword = async (token, newPassword) => {
-  // Hash the token for comparison with stored hash
-  const resetPasswordToken = crypto
-    .createHash('sha256')
-    .update(token)
-    .digest('hex');
-
-  // Find user with valid token
-  const user = await User.findOne({
-    resetPasswordToken,
-    resetPasswordExpire: { $gt: Date.now() }
+export const verifyPasswordResetOTP = async (email, otp) => {
+  // Find user by email
+  const user = await User.findOne({ 
+    email,
+    resetPasswordOTPExpire: { $gt: Date.now() }
   });
 
   if (!user) {
-    throw new Error('Invalid or expired token');
+    throw new Error('Invalid email or OTP expired');
+  }
+
+  // Verify OTP
+  const isValid = user.verifyPasswordResetOTP(otp);
+  if (!isValid) {
+    throw new Error('Invalid OTP');
+  }
+  
+  return true;
+};
+
+/**
+ * Reset password using OTP
+ * @param {string} email - User email
+ * @param {string} otp - One-time password
+ * @param {string} newPassword - New password
+ * @returns {boolean} - Success status
+ */
+export const resetPassword = async (email, otp, newPassword) => {
+  // Find user by email
+  const user = await User.findOne({ 
+    email,
+    resetPasswordOTPExpire: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    throw new Error('Invalid email or OTP expired');
+  }
+
+  // Verify OTP
+  const isValid = user.verifyPasswordResetOTP(otp);
+  if (!isValid) {
+    throw new Error('Invalid OTP');
   }
 
   // Set new password and clear reset fields
   user.password = newPassword;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpire = undefined;
+  user.resetPasswordOTP = undefined;
+  user.resetPasswordOTPExpire = undefined;
   
   await user.save();
   

@@ -87,7 +87,7 @@ export const getMe = async (req, res, next) => {
 };
 
 /**
- * Forgot password
+ * Forgot password - sends OTP to email
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  * @param {Function} next - Express next middleware function
@@ -103,14 +103,14 @@ export const forgotPassword = async (req, res, next) => {
       });
     }
 
-    // Base URL for password reset
-    const resetUrl = `${req.protocol}://${req.get('host')}`;
-    
-    await authService.forgotPassword(email, resetUrl);
+    await authService.forgotPassword(email);
     
     res.status(200).json({
       success: true,
-      message: 'Email sent with password reset instructions'
+      message: 'OTP sent to your email address',
+      data: {
+        email
+      }
     });
   } catch (error) {
     next(error);
@@ -118,24 +118,55 @@ export const forgotPassword = async (req, res, next) => {
 };
 
 /**
- * Reset password
+ * Verify OTP for password reset
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
+export const verifyOTP = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide email and OTP'
+      });
+    }
+
+    await authService.verifyPasswordResetOTP(email, otp);
+    
+    res.status(200).json({
+      success: true,
+      message: 'OTP verified successfully',
+      data: {
+        email,
+        verified: true
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Reset password using OTP
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  * @param {Function} next - Express next middleware function
  */
 export const resetPassword = async (req, res, next) => {
   try {
-    const { token } = req.params;
-    const { password } = req.body;
+    const { email, otp, password } = req.body;
     
-    if (!password) {
+    if (!email || !otp || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide a new password'
+        message: 'Please provide email, OTP, and new password'
       });
     }
 
-    await authService.resetPassword(token, password);
+    await authService.resetPassword(email, otp, password);
     
     res.status(200).json({
       success: true,
