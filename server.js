@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import connectDB from './config/db.js';
+import fireStationRoutes from './routes/fireStation.routes.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
@@ -41,6 +42,8 @@ app.use('/api', limiter);
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/stations', fireStationRoutes);
+
 
 // Root route
 app.get('/', (req, res) => {
