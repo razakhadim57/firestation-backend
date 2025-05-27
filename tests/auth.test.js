@@ -13,11 +13,9 @@ process.env.JWT_EXPIRE = '1h';
 let mongoServer;
 
 beforeAll(async () => {
-  // Create in-memory MongoDB server
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
   
-  // Connect to the in-memory database
   await mongoose.connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true
@@ -25,13 +23,11 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  // Disconnect and stop MongoDB server
   await mongoose.disconnect();
   await mongoServer.stop();
 });
 
 beforeEach(async () => {
-  // Clear users collection before each test
   await User.deleteMany({});
 });
 

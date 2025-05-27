@@ -1,12 +1,6 @@
 import * as authService from '../services/authService.js';
 import * as tokenService from '../services/tokenService.js';
-
-/**
- * Register a new user
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
- */
+ 
 export const register = async (req, res, next) => {
   try {
     const userData = {
@@ -28,13 +22,6 @@ export const register = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * Login user
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
- */
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -48,31 +35,23 @@ export const login = async (req, res, next) => {
 
     const { user, accessToken, refreshToken } = await authService.login(email, password);
     
-    // Set refresh token in HTTP-only cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // secure in production
+      secure: process.env.NODE_ENV === 'production', 
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000 
     });
     
     res.status(200).json({
       success: true,
       accessToken,
-      refreshToken, // Include refresh token in response body
+      refreshToken,
       data: user
     });
   } catch (error) {
     next(error);
   }
 };
-
-/**
- * Get current logged in user
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
- */
 export const getMe = async (req, res, next) => {
   try {
     const user = await authService.getUserById(req.user.id);
@@ -85,13 +64,6 @@ export const getMe = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * Forgot password - sends OTP to email
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
- */
 export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -116,13 +88,6 @@ export const forgotPassword = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * Verify OTP for password reset
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
- */
 export const verifyOTP = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
@@ -148,13 +113,6 @@ export const verifyOTP = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * Reset password using OTP
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
- */
 export const resetPassword = async (req, res, next) => {
   try {
     const { email, otp, password } = req.body;
@@ -176,16 +134,8 @@ export const resetPassword = async (req, res, next) => {
     next(error);
   }
 };
-
-/**
- * Refresh access token using refresh token
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
- */
 export const refreshToken = async (req, res, next) => {
   try {
-    // Get refresh token from cookie or request body
     const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
     
     if (!refreshToken) {
@@ -194,8 +144,7 @@ export const refreshToken = async (req, res, next) => {
         message: 'Refresh token is required'
       });
     }
-
-    // Verify refresh token and get new access token
+ 
     const { accessToken, user } = await tokenService.refreshAccessToken(refreshToken);
     
     res.status(200).json({
@@ -215,15 +164,8 @@ export const refreshToken = async (req, res, next) => {
   }
 };
 
-/**
- * Logout user by invalidating refresh token
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next middleware function
- */
 export const logout = async (req, res, next) => {
-  try {
-    // Get refresh token from cookie or request body
+  try { 
     const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
     
     if (!refreshToken) {
@@ -232,16 +174,13 @@ export const logout = async (req, res, next) => {
         message: 'Refresh token is required'
       });
     }
-
-    // Get user ID from the authenticated request
+ 
     const userId = req.user?.id;
     
-    if (userId) {
-      // Invalidate refresh token
+    if (userId) { 
       await tokenService.invalidateRefreshToken(userId, refreshToken);
     }
-    
-    // Clear refresh token cookie
+     
     res.clearCookie('refreshToken');
     
     res.status(200).json({
