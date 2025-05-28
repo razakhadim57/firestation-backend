@@ -26,12 +26,16 @@ const FireStationSchema = new mongoose.Schema({
   gallery: [String],
   downloads: [String],
   sponsorSlots: [{
-    sponsor: { type: mongoose.Schema.Types.ObjectId, ref: 'Sponsor' },
-    slotNumber: Number,
-    customVideoUrl: String,
-    customLink: String,
-    isActive: { type: Boolean, default: true }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Sponsor'
   }],
+  // sponsorSlots: [{
+  //   sponsor: { type: mongoose.Schema.Types.ObjectId, ref: 'Sponsor' },
+  //   slotNumber: Number,
+  //   customVideoUrl: String,
+  //   customLink: String,
+  //   isActive: { type: Boolean, default: true }
+  // }],
   chatbotQuestionsAnswers: [{
     question: String,
     answer: String,

@@ -6,6 +6,9 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import connectDB from './config/db.js';
 import fireStationRoutes from './routes/fireStation.routes.js';
+import sponsorRoutes from './routes/sponsor.routes.js';
+import mediaRoutes from './routes/media.routes.js';
+import eventRoutes from './routes/event.routes.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
@@ -43,6 +46,9 @@ app.use('/api', limiter);
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/stations', fireStationRoutes);
+app.use('/api/sponsor', sponsorRoutes);
+app.use('/api/media', mediaRoutes);
+app.use('/api/event', eventRoutes);
 
 
 // Root route

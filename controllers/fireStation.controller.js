@@ -1,3 +1,4 @@
+import User from '../models/User.js';
 import { getFireStations, createFireStation,getFireStationById, updateFireStation, deleteFireStation  } from '../services/fireStation.service.js';
 
 export const create = async (req, res, next) => {
@@ -5,6 +6,12 @@ export const create = async (req, res, next) => {
 
         console.log("Creating fire station with data:", req.body);
       const station = await createFireStation(req.body);
+
+    await User.findByIdAndUpdate(
+      req?.user?._id,
+      { $push: { stationIds: station?._id } },
+      { new: true }
+    );
 
 
       res.status(201).json({
