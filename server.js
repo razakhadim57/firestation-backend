@@ -9,6 +9,7 @@ import fireStationRoutes from './routes/fireStation.routes.js';
 import sponsorRoutes from './routes/sponsor.routes.js';
 import mediaRoutes from './routes/media.routes.js';
 import eventRoutes from './routes/event.routes.js';
+import jobRoutes from './routes/job.routes.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
@@ -49,6 +50,7 @@ app.use('/api/stations', fireStationRoutes);
 app.use('/api/sponsor', sponsorRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/event', eventRoutes);
+app.use('/api/job', jobRoutes);
 
 
 // Root route

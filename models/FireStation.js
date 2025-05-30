@@ -29,6 +29,11 @@ const FireStationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Sponsor'
   }],
+    isApproved: {
+    type: Boolean,
+    default: true,
+    required: true,
+  },
   // sponsorSlots: [{
   //   sponsor: { type: mongoose.Schema.Types.ObjectId, ref: 'Sponsor' },
   //   slotNumber: Number,
